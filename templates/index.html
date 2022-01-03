@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Movie Recommendations</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/style.css') }}">
+    <link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet"/>
+  </head>
+  <body>
+    <div class="container">
+
+    <!-- Modal -->
+    <div id="myModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Recommendations Based on Movies</h4>
+          </div>
+          <div class="modal-body">
+          <div id="results">
+              <form name="rec_form_table" id="rec_form_table">
+                <table class="table table-striped" style="max-width: 500px;" id="rec_table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Cal Score</th>
+                      <th>TM Score</th>
+                      <th>Aud. Score</th>
+                      <th>Oscar Noms.</th>
+                    </tr>
+                  </thead>
+                    <tr>
+                    </tr>
+                </table>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+      <div class="row">
+        <div class="col-sm-5 col-sm-offset-1">
+          <h1>Generate Recommendations From Movies</h1>
+          <br>
+          <form role="form" method="POST" action="/" name="personal_form" id="personal_form" onsubmit="addTitle()">
+            <div class="form-group">
+              <input type="text" name="moviepersonal" class="form-control" id="rec_url-box" placeholder="Enter title" style="max-width: 300px;">
+            </div>
+            <button type="submit" class="btn btn-default">Add Title</button>
+          </form>
+          <br>
+          <form role="form" method="POST" action="/" name="personal_form_submit" id="personal_form_submit" onsubmit="submitTitles()">
+            <button type="submit" class="btn btn-default">Submit List</button>
+          </form>
+          <br>
+          {% for error in list_errors %}
+            <h4>{{ error }}</h4>
+          {% endfor %}
+          <br>
+        </div>
+        <div class="col-sm-5 col-sm-offset-1">
+            <br>
+            <div id="results">
+              <form name="personal_form_table" id="personal_form_table">
+                <table class="table table-striped" style="max-width: 500px;" id="personal_table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Cal Score</th>
+                      <th>TM Score</th>
+                      <th>Aud. Score</th>
+                      <th>Oscar Noms.</th>
+                    </tr>
+                  </thead>
+                    <tr>
+                    </tr>
+                </table>
+              </form>
+            </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-5 col-sm-offset-1">
+          <h1>Generate Recommended Movies Based on Year</h1>
+          <br>
+          <form role="form" method="POST" action="/">
+            <div class="form-group">
+<!--               <input type="text" name="movieyear" class="form-control" id="url-box" placeholder="Enter year (1950-2021)" style="max-width: 300px;"> -->
+              <select name="movieyear" id="movieyear">
+              </select>
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+          </form>
+          <br>
+          {% for error in list_errors %}
+            <h4>{{ error }}</h4>
+          {% endfor %}
+          <br>
+        </div>
+        <div class="col-sm-5 col-sm-offset-1">
+          {% if year_results %}
+<!--             <h1>Info</h1>
+            <p>Movie: {{ results[0] }}</p>
+            <p>Tomato Meter Score: {{ results[1] }}</p>
+            <p>Audience Score: {{ results[2] }}</p>
+            <p>Calvin's Adjusted Score: {{ results[3] }}</p> -->
+            <br>
+            <div id="results">
+              <table class="table table-striped" style="max-width: 500px;" id="year_table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Title</th>
+                    <th>Cal Score</th>
+                    <th>TM Score</th>
+                    <th>Aud. Score</th>
+                    <th>Oscar Noms</th> 
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for result in year_results%}
+                    <tr>
+                      <td>{{ loop.index }}</td>
+                      <td>{{ result["title"] }}</td>
+                      <td>{{ result["cscore"] }}</td>
+                      <td>{{ result["tscore"] }}</td>
+                      <td>{{ result["ascore"] }}</td>
+                      <td>{{ result["oscars"] }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                </tfoot>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-5 col-sm-offset-1">
+          <h1>Generate Recommended Movies Based on Genre</h1>
+          <br>
+          <form role="form" method="POST" action="/">
+            <div class="form-group">
+              <select name="moviegenre" id="moviegenre">
+                  <option name="classics" id = "classics" value="classics">Classics</option>
+                  <option name="comedy" id = "comedy" value="comedy">Comedy</option>
+                  <option name="drama" id = "drama" value="drama">Drama</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+          </form>
+          <br>
+          {% for error in list_errors %}
+            <h4>{{ error }}</h4>
+          {% endfor %}
+          <br>
+        </div>
+        <div class="col-sm-5 col-sm-offset-1">
+          {% if genre_results %}
+            <br>
+            <div id="results">
+              <table class="table table-striped" style="max-width: 500px;" id="genre_table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Title</th>
+                    <th>Cal Score</th>
+                    <th>TM Score</th>
+                    <th>Aud. Score</th>
+                    <th>Oscar Noms.</th>
+                  </tr>
+                </thead>
+                {% for result in genre_results%}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ result["title"] }}</td>
+                    <td>{{ result["cscore"] }}</td>
+                    <td>{{ result["tscore"] }}</td>
+                    <td>{{ result["ascore"] }}</td>
+                    <td>{{ result["oscars"] }}</td>
+                  </tr>
+                {% endfor %}
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+
+<!--     <div class="row">
+        <div class="col-sm-5 col-sm-offset-1">
+          <h1>Adjusted Movie or TV Show Rating</h1>
+          <br>
+          <form role="form" method="POST" action="/">
+            <div class="form-group">
+              <input type="text" name="movie" class="form-control" id="url-box" placeholder="Enter title" style="max-width: 300px;">
+              <br>
+              <select name="format">
+                  <option name="movie" id = "movie" value="movie">Movie</option>
+                  <option name="tv" id = "tv" value="tv">TV Show</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+          </form>
+          <br>
+          {% for error in movie_errors %}
+            <h4>{{ error }}</h4>
+          {% endfor %}
+          <br>
+        </div>
+        <div class="col-sm-5 col-sm-offset-1">
+          {% if results %}
+            <h1>Info</h1>
+            <p>Movie: {{ results[0] }}</p>
+            <p>Tomato Meter Score: {{ results[1] }}</p>
+            <p>Audience Score: {{ results[2] }}</p>
+            <p>Calvin's Adjusted Score: {{ results[3] }}</p>
+            <br>
+            <div id="results">
+              <table class="table table-striped" style="max-width: 300px;">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>TM Score</th>
+                    <th>Aud. Score</th>
+                    <th>Oscar Noms</th> 
+                    <th>Cal Score</th>
+                  </tr>
+                </thead>
+                {% for result in results%}
+                  <tr>
+                    <td>{{ result["title"] }}</td>
+                    <td>{{ result["tscore"] }}</td>
+                    <td>{{ result["ascore"] }}</td>
+                    <td>{{ result["oscars"] }}</td>
+                    <td>{{ result["cscore"] }}</td>
+                  </tr>
+                {% endfor %}
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div> -->
+
+
+    </div>
+    <br><br>
+    <!-- <script src="//code.jquery.com/jquery-1.11.0.min.js"></script> -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+      $(function() {
+          $('#year_table').myfunction();
+          $('#genre_table').myfunction();
+      });
+
+      let year = 1949;
+      for (let i = 2021; i > year; i--) {
+        let opt = document.createElement("option");
+        opt.value = i;
+        opt.innerHTML = i; 
+        $("#movieyear").append(opt);
+      }
+
+      $(function() {
+        var movies = [];
+        function loadMovies() {
+          jQuery.getJSON("/movies", function(data, status, xhr) {
+            for (var i = 0; i < data.length; i++) {
+              movies.push(data[i].name)
+            }
+          })
+        }
+        loadMovies();
+        $("#rec_url-box").autocomplete({
+            source: function(request, response) {
+                var results = $.ui.autocomplete.filter(movies, request.term);
+                response(results.slice(0, 10));
+            }
+        })
+      });
+      window.onload = function() {
+          var selItem = sessionStorage.getItem("SelItem"); 
+          var selItem2 = sessionStorage.getItem("SelItem2");   
+          $('#movieyear').val(selItem);
+          $('#moviegenre').val(selItem2);
+      }
+      $('#movieyear').change(function() { 
+          var selVal = $(this).val();
+          sessionStorage.setItem("SelItem", selVal);
+      });
+
+      $('#moviegenre').change(function() { 
+          var selVal = $(this).val();
+          sessionStorage.setItem("SelItem2", selVal);
+      });
+    </script>
+
+    <!-- <script src="{{ url_for('static', filename='scripts/test.js') }}"></script> -->
+  </body>
+</html>
